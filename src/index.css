@@ -1,0 +1,6 @@
+@import "tailwindcss";
+
+@theme {
+  --color-unnes-blue: #00007f;
+  --color-unnes-yellow: #ffd900;
+}

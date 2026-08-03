@@ -1,0 +1,6 @@
+{
+  "name": "Dashboard Komparasi IndoBERT-Base & IndoBERTweet",
+  "description": "Dashboard prototype evaluasi komparatif model IndoBERT-Base dan IndoBERTweet untuk klasifikasi teks kesehatan mental (Stres, Depresi, Netral) pada postingan X/Twitter.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
