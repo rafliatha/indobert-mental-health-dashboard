@@ -1,20 +1,22 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# Mental Health Text Classification Dashboard
 
-# Run and deploy your AI Studio app
+A React and Vite based dashboard with an Express backend for binary classification of Indonesian mental health text.
 
-This contains everything you need to run your app locally.
-
-View your app in AI Studio: https://ai.studio/apps/feb9cde3-2591-4c77-b746-b3c661f6641e
+## Features
+- **Text Classification**: Analyzes Indonesian text to detect potential mental health distress using NLP classification rules.
+- **Frontend Dashboard**: Built with React, Vite, and Tailwind CSS.
+- **Backend API**: Express server providing the classification endpoints.
 
 ## Run Locally
 
-**Prerequisites:**  Node.js
-
+**Prerequisites:** Node.js
 
 1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+   ```bash
+   npm install
+   ```
+2. Run the development server:
+   ```bash
+   npm run dev
+   ```
+3. Open your browser and navigate to the provided local server address (e.g., `http://localhost:3000`).

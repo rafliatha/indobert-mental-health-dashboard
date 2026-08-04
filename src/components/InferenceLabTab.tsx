@@ -6,14 +6,16 @@ import { Sliders, Play, RotateCcw, CheckCircle, AlertTriangle, Sparkles, Message
 interface InferenceLabTabProps {
   isDarkMode: boolean;
   onInferenceComplete?: (result: ComparisonPrediction) => void;
+  onNavigateToDashboard?: () => void;
 }
 
-export const InferenceLabTab: React.FC<InferenceLabTabProps> = ({ isDarkMode, onInferenceComplete }) => {
+export const InferenceLabTab: React.FC<InferenceLabTabProps> = ({ isDarkMode, onInferenceComplete, onNavigateToDashboard }) => {
   const [inputText, setInputText] = useState<string>(SAMPLE_TWEETS[0].text);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [predictionResult, setPredictionResult] = useState<ComparisonPrediction | null>(null);
   const [selectedSampleId, setSelectedSampleId] = useState<string>(SAMPLE_TWEETS[0].id);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [batchLines, setBatchLines] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSelectSample = (sample: TweetSample) => {
@@ -21,6 +23,7 @@ export const InferenceLabTab: React.FC<InferenceLabTabProps> = ({ isDarkMode, on
     setInputText(sample.text);
     setPredictionResult(null);
     setFileName(null);
+    setBatchLines([]);
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -34,30 +37,63 @@ export const InferenceLabTab: React.FC<InferenceLabTabProps> = ({ isDarkMode, on
     const reader = new FileReader();
     reader.onload = (event) => {
       const content = event.target?.result as string;
-      // Ambil beberapa baris pertama sebagai contoh text input
-      const lines = content.split('\n').filter(line => line.trim().length > 0);
+      const lines = content.split('\n')
+        .map(l => l.trim())
+        .filter(line => line.length > 0 && line.toLowerCase() !== 'teks'); // ignore empty lines and header 'teks'
+      
       if (lines.length > 0) {
-        // Tampilkan 3 cuitan pertama sebagai representasi di textarea
-        setInputText(lines.slice(0, 3).join('\n---\n'));
+        setBatchLines(lines);
+        setInputText(`[MODE BATCH] File memuat ${lines.length} cuitan.\n\nKlik "Jalankan Prediksi Komparatif" untuk menguji semua cuitan secara otomatis. Hasil dari setiap cuitan akan dikirim ke "Riwayat Pengujian" di Tab Evaluasi.`);
       }
     };
     reader.readAsText(file);
   };
 
   const handleRunInference = async () => {
-    if (!inputText.trim()) return;
+    if (!inputText.trim() && batchLines.length === 0) return;
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/classify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: inputText }),
-      });
-      const data: ComparisonPrediction = await response.json();
-      setPredictionResult(data);
-      if (onInferenceComplete) {
-        onInferenceComplete(data);
+      if (batchLines.length > 0) {
+        // Mode Batch
+        for (let i = 0; i < batchLines.length; i++) {
+          const line = batchLines[i];
+          const response = await fetch('/api/classify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: line }),
+          });
+          const data: ComparisonPrediction = await response.json();
+          setPredictionResult(data); // update UI per cuitan
+          if (onInferenceComplete) {
+            onInferenceComplete(data);
+          }
+          // Update status text
+          setInputText(`[MEMPROSES BATCH ${i + 1}/${batchLines.length}]\n\n"${line}"`);
+        }
+        setInputText(`✅ [SELESAI] ${batchLines.length} cuitan telah berhasil diproses!\n\nMengarahkan Anda ke tab Evaluasi & Analisis Komparatif secara otomatis...`);
+        
+        // Jeda sedikit agar tulisan selesai terbaca, lalu pindah tab
+        setTimeout(() => {
+          setBatchLines([]);
+          setFileName(null);
+          setInputText('');
+          if (onNavigateToDashboard) {
+            onNavigateToDashboard();
+          }
+        }, 1500);
+      } else {
+        // Mode Tunggal
+        const response = await fetch('/api/classify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: inputText }),
+        });
+        const data: ComparisonPrediction = await response.json();
+        setPredictionResult(data);
+        if (onInferenceComplete) {
+          onInferenceComplete(data);
+        }
       }
     } catch (err) {
       console.error('Inference error:', err);
@@ -176,6 +212,7 @@ export const InferenceLabTab: React.FC<InferenceLabTabProps> = ({ isDarkMode, on
                   setPredictionResult(null);
                   setSelectedSampleId('');
                   setFileName(null);
+                  setBatchLines([]);
                   if (fileInputRef.current) {
                     fileInputRef.current.value = '';
                   }
@@ -339,8 +376,8 @@ export const InferenceLabTab: React.FC<InferenceLabTabProps> = ({ isDarkMode, on
                         tok === '[CLS]' || tok === '[SEP]'
                           ? 'bg-slate-800 text-slate-300 font-bold border-slate-700'
                           : tok.startsWith('##')
-                          ? 'bg-amber-500/20 text-amber-600 dark:text-amber-300 border-amber-500/30'
-                          : 'bg-slate-200 dark:bg-slate-900 border-slate-300 dark:border-slate-800'
+                          ? (isDarkMode ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' : 'bg-amber-500/20 text-amber-600 border-amber-500/30')
+                          : (isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-slate-200 border-slate-300')
                       }`}
                     >
                       {tok}
@@ -449,7 +486,7 @@ export const InferenceLabTab: React.FC<InferenceLabTabProps> = ({ isDarkMode, on
                       className={`px-1.5 py-0.5 rounded border ${
                         tok === '[CLS]' || tok === '[SEP]'
                           ? 'bg-slate-800 text-slate-300 font-bold border-slate-700'
-                          : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/30'
+                          : (isDarkMode ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30' : 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30')
                       }`}
                     >
                       {tok}
@@ -464,7 +501,7 @@ export const InferenceLabTab: React.FC<InferenceLabTabProps> = ({ isDarkMode, on
               {/* Word Weights Visualization (Explainability) */}
               {predictionResult.indoBertweet.wordWeights && (
                 <div className={`p-3.5 rounded-xl border space-y-2 ${subCardBg}`}>
-                  <div className="text-xs font-bold text-emerald-600 dark:text-emerald-400">Analisis Bobot Kalimat (Explainability):</div>
+                  <div className={`text-xs font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>Analisis Bobot Kalimat (Explainability):</div>
                   <div className="flex flex-wrap gap-1.5 pt-1">
                     {predictionResult.indoBertweet.wordWeights.map((w, idx) => {
                       const alpha = Math.min(Math.max(w.weight, 0.1), 1);

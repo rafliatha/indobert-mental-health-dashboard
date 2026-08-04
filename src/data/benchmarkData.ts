@@ -21,7 +21,7 @@ export const THESIS_INFO = {
 export const MODEL_SUMMARY_METRICS: { indoBertBase: ModelMetrics; indoBertweet: ModelMetrics } = {
   indoBertBase: {
     name: "IndoBERT-Base",
-    accuracy: 0.8890,
+    accuracy: 0.8809,
     precision: 0.8902,
     recall: 0.8891,
     f1Score: 0.8889,

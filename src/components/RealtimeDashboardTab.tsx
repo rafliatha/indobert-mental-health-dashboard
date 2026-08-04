@@ -4,7 +4,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, 
   LineChart, Line, Cell
 } from 'recharts';
-import { Activity, Clock, Cpu, Server, Zap } from 'lucide-react';
+import { Activity, Clock, Cpu, Server, Zap, History, MessageSquareQuote } from 'lucide-react';
 
 interface RealtimeDashboardTabProps {
   isDarkMode: boolean;
@@ -170,6 +170,103 @@ export const RealtimeDashboardTab: React.FC<RealtimeDashboardTabProps> = ({ isDa
               </BarChart>
             </ResponsiveContainer>
           </div>
+        </div>
+      </div>
+
+      {/* Detailed Inference History */}
+      <div className={`p-6 rounded-2xl border mt-6 ${cardBg}`}>
+        <h3 className="text-lg font-bold mb-1 flex items-center gap-2">
+          <History className={`w-5 h-5 ${isDarkMode ? 'text-indigo-400' : 'text-unnes-blue'}`} />
+          Riwayat Pengujian Detail
+        </h3>
+        <p className={`text-xs mb-6 ${subTextColor}`}>Daftar lengkap cuitan yang telah diuji beserta perbandingan hasil dari kedua model</p>
+        
+        <div className="space-y-4">
+          {[...history].reverse().map((item, index) => (
+            <div key={index} className={`p-4 rounded-xl border ${isDarkMode ? 'bg-slate-950/50 border-slate-800' : 'bg-slate-50 border-slate-200'}`}>
+              <div className="flex flex-col mb-4">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <MessageSquareQuote className={`w-4 h-4 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`} />
+                  <span className="text-xs font-semibold text-slate-500">Teks Masukan:</span>
+                </div>
+                <p className="text-sm italic">"{item.inputText}"</p>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* IndoBERT-Base Result */}
+                <div className={`p-3 rounded-lg border ${isDarkMode ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-200'}`}>
+                  <span className="text-[10px] uppercase font-bold block text-slate-500 mb-1">Hasil IndoBERT-Base</span>
+                  <span className={`text-xs px-2.5 py-1 rounded border font-bold inline-block ${
+                    item.indoBertBase.label === 'Positif Terindikasi (1)' 
+                      ? (isDarkMode ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' : 'bg-amber-100 text-amber-800 border-amber-300')
+                      : (isDarkMode ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-emerald-100 text-emerald-800 border-emerald-300')
+                  }`}>
+                    {item.indoBertBase.label}
+                  </span>
+                </div>
+
+                {/* IndoBERTweet Result */}
+                <div className={`p-3 rounded-lg border ${isDarkMode ? 'bg-emerald-950/20 border-emerald-900/50' : 'bg-emerald-50/50 border-emerald-100'}`}>
+                  <span className="text-[10px] uppercase font-bold block text-emerald-600 dark:text-emerald-500 mb-1">Hasil IndoBERTweet</span>
+                  <span className={`text-xs px-2.5 py-1 rounded border font-bold inline-block ${
+                    item.indoBertweet.label === 'Positif Terindikasi (1)' 
+                      ? (isDarkMode ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' : 'bg-amber-100 text-amber-800 border-amber-300')
+                      : (isDarkMode ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-emerald-100 text-emerald-800 border-emerald-300')
+                  }`}>
+                    {item.indoBertweet.label}
+                  </span>
+                </div>
+              </div>
+              
+              {/* Tokenization and Keywords */}
+              {item.indoBertweet.wordWeights && (
+                <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+                  {/* Tokenization Subwords */}
+                  <div className="mb-3">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-[10px] font-bold text-slate-500">Subword Tokenization:</span>
+                      <span className="text-[9px] font-bold text-emerald-500 font-mono">OOV: {item.indoBertweet.oovCount}</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1 font-mono text-[10px] max-h-16 overflow-y-auto">
+                      {item.indoBertweet.subwords.map((tok, idx) => (
+                        <span
+                          key={idx}
+                          className={`px-1 py-0.5 rounded border ${
+                            tok === '[CLS]' || tok === '[SEP]'
+                              ? 'bg-slate-800 text-slate-300 font-bold border-slate-700'
+                              : (isDarkMode ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30' : 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30')
+                          }`}
+                        >
+                          {tok}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <span className="text-[10px] font-bold block mb-1.5 text-slate-500">Kata Kunci Utama (Bobot Tertinggi):</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {item.indoBertweet.wordWeights
+                      .filter(w => w.weight > 0.3) // Only show important keywords
+                      .map((w, idx) => (
+                      <span
+                        key={idx}
+                        className={`px-2 py-0.5 rounded text-[11px] font-bold ${
+                          isDarkMode 
+                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' 
+                            : 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                        }`}
+                      >
+                        {w.word}
+                      </span>
+                    ))}
+                    {item.indoBertweet.wordWeights.filter(w => w.weight > 0.3).length === 0 && (
+                      <span className="text-[11px] italic text-slate-500">- Tidak ada kata kunci dominan -</span>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       </div>
     </div>
