@@ -21,9 +21,9 @@ export const THESIS_INFO = {
 export const MODEL_SUMMARY_METRICS: { indoBertBase: ModelMetrics; indoBertweet: ModelMetrics } = {
   indoBertBase: {
     name: "IndoBERT-Base",
-    accuracy: 0.8809,
-    precision: 0.8902,
-    recall: 0.8891,
+    accuracy: 0.8890,
+    precision: 0.8901,
+    recall: 0.8890,
     f1Score: 0.8889,
     latencyMs: 48.6,
     ramUsageMb: 1240,
@@ -31,10 +31,10 @@ export const MODEL_SUMMARY_METRICS: { indoBertBase: ModelMetrics; indoBertweet: 
   },
   indoBertweet: {
     name: "IndoBERTweet",
-    accuracy: 0.8943,
-    precision: 0.8965,
-    recall: 0.8944,
-    f1Score: 0.8941,
+    accuracy: 0.8876,
+    precision: 0.8899,
+    recall: 0.8877,
+    f1Score: 0.8874,
     latencyMs: 32.4,
     ramUsageMb: 980,
     throughputSamplesPerSec: 30.8
@@ -65,16 +65,16 @@ export const CONFUSION_MATRIX_INDOBERTWEET: ConfusionMatrixData[] = [
 ];
 
 export const CROSS_VALIDATION_RESULTS = [
-  { fold: 1, baseAccuracy: 0.8995, baseF1: 0.8994, tweetAccuracy: 0.9043, tweetF1: 0.9042 },
-  { fold: 2, baseAccuracy: 0.8947, baseF1: 0.8946, tweetAccuracy: 0.9091, tweetF1: 0.9090 },
-  { fold: 3, baseAccuracy: 0.8804, baseF1: 0.8803, tweetAccuracy: 0.8900, tweetF1: 0.8898 },
-  { fold: 4, baseAccuracy: 0.8947, baseF1: 0.8946, tweetAccuracy: 0.9043, tweetF1: 0.9042 },
-  { fold: 5, baseAccuracy: 0.9043, baseF1: 0.9042, tweetAccuracy: 0.9091, tweetF1: 0.9090 },
-  { fold: 6, baseAccuracy: 0.8852, baseF1: 0.8850, tweetAccuracy: 0.8947, tweetF1: 0.8946 },
-  { fold: 7, baseAccuracy: 0.8804, baseF1: 0.8803, tweetAccuracy: 0.8804, tweetF1: 0.8802 },
-  { fold: 8, baseAccuracy: 0.8804, baseF1: 0.8802, tweetAccuracy: 0.8804, tweetF1: 0.8801 },
-  { fold: 9, baseAccuracy: 0.8852, baseF1: 0.8850, tweetAccuracy: 0.8804, tweetF1: 0.8803 },
-  { fold: 10, baseAccuracy: 0.8852, baseF1: 0.8851, tweetAccuracy: 0.8900, tweetF1: 0.8899 }
+  { fold: 1, baseAccuracy: 0.8804, baseF1: 0.8804, tweetAccuracy: 0.9091, tweetF1: 0.9091 },
+  { fold: 2, baseAccuracy: 0.9378, baseF1: 0.9378, tweetAccuracy: 0.9091, tweetF1: 0.9091 },
+  { fold: 3, baseAccuracy: 0.8947, baseF1: 0.8947, tweetAccuracy: 0.9091, tweetF1: 0.9091 },
+  { fold: 4, baseAccuracy: 0.9043, baseF1: 0.9043, tweetAccuracy: 0.8995, tweetF1: 0.8995 },
+  { fold: 5, baseAccuracy: 0.9139, baseF1: 0.9138, tweetAccuracy: 0.8947, tweetF1: 0.8946 },
+  { fold: 6, baseAccuracy: 0.8517, baseF1: 0.8516, tweetAccuracy: 0.8469, tweetF1: 0.8459 },
+  { fold: 7, baseAccuracy: 0.8900, baseF1: 0.8899, tweetAccuracy: 0.8517, tweetF1: 0.8516 },
+  { fold: 8, baseAccuracy: 0.8612, baseF1: 0.8612, tweetAccuracy: 0.8995, tweetF1: 0.8994 },
+  { fold: 9, baseAccuracy: 0.8756, baseF1: 0.8754, tweetAccuracy: 0.8517, tweetF1: 0.8513 },
+  { fold: 10, baseAccuracy: 0.8804, baseF1: 0.8801, tweetAccuracy: 0.9139, tweetF1: 0.9137 }
 ];
 
 export const LEXICON_DICTIONARY: LexiconItem[] = [

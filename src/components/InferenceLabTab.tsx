@@ -63,6 +63,12 @@ export const InferenceLabTab: React.FC<InferenceLabTabProps> = ({ isDarkMode, on
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ text: line }),
           });
+          
+          if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.detail || 'Gagal terhubung ke model inference backend.');
+          }
+          
           const data: ComparisonPrediction = await response.json();
           setPredictionResult(data); // update UI per cuitan
           if (onInferenceComplete) {
@@ -89,14 +95,21 @@ export const InferenceLabTab: React.FC<InferenceLabTabProps> = ({ isDarkMode, on
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ text: inputText }),
         });
+        
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData.detail || 'Gagal terhubung ke model inference backend.');
+        }
+        
         const data: ComparisonPrediction = await response.json();
         setPredictionResult(data);
         if (onInferenceComplete) {
           onInferenceComplete(data);
         }
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Inference error:', err);
+      alert(`Error: ${err.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -131,11 +144,7 @@ export const InferenceLabTab: React.FC<InferenceLabTabProps> = ({ isDarkMode, on
               Uji langsung cuitan bahasa Indonesia untuk membandingkan hasil klasifikasi &amp; latensi model IndoBERT-Base vs IndoBERTweet.
             </p>
           </div>
-          <span className={`text-[11px] font-mono px-3 py-1 rounded-full border self-start sm:self-center font-bold ${
-            isDarkMode ? 'text-emerald-400 bg-emerald-950/60 border-emerald-800' : 'text-emerald-800 bg-emerald-50 border-emerald-300'
-          }`}>
-            Backend API: FastAPI (Python REST)
-          </span>
+
         </div>
 
         {/* Input Text Area & Actions */}
@@ -283,7 +292,23 @@ export const InferenceLabTab: React.FC<InferenceLabTabProps> = ({ isDarkMode, on
       </div>
 
       {/* Prediction Results Display */}
-      {predictionResult && (
+      {predictionResult && (() => {
+        // Calculate recommended model dynamically
+        const baseProb = Math.max(...Object.values(predictionResult.indoBertBase.probabilities));
+        const tweetProb = Math.max(...Object.values(predictionResult.indoBertweet.probabilities));
+        
+        let isBaseBest = false;
+        
+        // Use probability as primary factor. If difference is negligible, use latency.
+        if (Math.abs(baseProb - tweetProb) > 0.001) {
+           isBaseBest = baseProb > tweetProb;
+        } else {
+           isBaseBest = predictionResult.indoBertBase.latencyMs < predictionResult.indoBertweet.latencyMs;
+        }
+        
+        const bestModelName = isBaseBest ? 'IndoBERT-Base' : 'IndoBERTweet';
+
+        return (
         <div className="space-y-6">
           {/* Rule Filter Notice */}
           <div className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${cardBg}`}>
@@ -307,14 +332,19 @@ export const InferenceLabTab: React.FC<InferenceLabTabProps> = ({ isDarkMode, on
 
             <div className={`p-3 rounded-xl border text-center shrink-0 ${subCardBg}`}>
               <span className={`text-[10px] font-semibold block uppercase ${subTextColor}`}>Model Direkomendasikan</span>
-              <span className="text-xs font-black text-emerald-500 mt-0.5 block">IndoBERTweet</span>
+              <span className="text-xs font-black text-emerald-500 mt-0.5 block">{bestModelName}</span>
             </div>
           </div>
 
           {/* Model Side-by-Side Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* IndoBERT-Base Card */}
-            <div className={`p-6 rounded-2xl border space-y-4 ${cardBg}`}>
+            <div className={`p-6 rounded-2xl border ${isBaseBest ? 'border-2 border-emerald-500/50' : ''} space-y-4 relative ${cardBg}`}>
+              {isBaseBest && (
+                <div className="absolute top-0 right-0 bg-emerald-500 text-slate-950 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-bl-lg flex items-center gap-1">
+                  <Sparkles className="w-3 h-3" /> Terunggul
+                </div>
+              )}
               <div className="flex items-center justify-between border-b pb-3 border-slate-700/30">
                 <div>
                   <h3 className="text-sm font-bold">IndoBERT-Base</h3>
@@ -421,10 +451,12 @@ export const InferenceLabTab: React.FC<InferenceLabTabProps> = ({ isDarkMode, on
             </div>
 
             {/* IndoBERTweet Card */}
-            <div className={`p-6 rounded-2xl border-2 border-emerald-500/50 space-y-4 relative ${cardBg}`}>
-              <div className="absolute top-0 right-0 bg-emerald-500 text-slate-950 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-bl-lg flex items-center gap-1">
-                <Sparkles className="w-3 h-3" /> Terunggul
-              </div>
+            <div className={`p-6 rounded-2xl border ${!isBaseBest ? 'border-2 border-emerald-500/50' : ''} space-y-4 relative ${cardBg}`}>
+              {!isBaseBest && (
+                <div className="absolute top-0 right-0 bg-emerald-500 text-slate-950 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-bl-lg flex items-center gap-1">
+                  <Sparkles className="w-3 h-3" /> Terunggul
+                </div>
+              )}
 
               <div className="flex items-center justify-between border-b pb-3 border-slate-700/30">
                 <div>
@@ -530,7 +562,8 @@ export const InferenceLabTab: React.FC<InferenceLabTabProps> = ({ isDarkMode, on
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
     </div>
   );
 };

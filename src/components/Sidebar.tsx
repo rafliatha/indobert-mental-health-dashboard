@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Activity, Sliders, LayoutDashboard, Database, X, Home } from 'lucide-react';
 
 interface SidebarProps {
@@ -16,6 +16,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isSidebarOpen,
   setIsSidebarOpen
 }) => {
+  const [isBackendOnline, setIsBackendOnline] = useState<boolean>(false);
+
+  useEffect(() => {
+    const checkBackendStatus = async () => {
+      try {
+        const response = await fetch('/api/health');
+        setIsBackendOnline(response.ok);
+      } catch (error) {
+        setIsBackendOnline(false);
+      }
+    };
+
+    checkBackendStatus();
+    const interval = setInterval(checkBackendStatus, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
   const sidebarClasses = `fixed inset-y-0 left-0 z-40 w-64 transform transition-all duration-300 ease-in-out md:relative md:flex-shrink-0 ${
     isSidebarOpen ? 'translate-x-0 ml-0' : '-translate-x-full md:translate-x-0 md:-ml-64'
   } ${
@@ -118,8 +135,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <span className={`text-xs font-semibold ${isDarkMode ? 'text-slate-300' : 'text-blue-100'}`}>Backend Status</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span className="text-xs text-emerald-400 font-mono">FastAPI Online</span>
+              <span className={`w-2 h-2 rounded-full ${isBackendOnline ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`}></span>
+              <span className={`text-xs font-mono ${isBackendOnline ? 'text-emerald-400' : 'text-red-400'}`}>
+                {isBackendOnline ? 'Online' : 'Offline'}
+              </span>
             </div>
           </div>
         </div>

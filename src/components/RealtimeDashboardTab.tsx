@@ -23,7 +23,7 @@ export const RealtimeDashboardTab: React.FC<RealtimeDashboardTabProps> = ({ isDa
       <div className={`p-10 rounded-2xl border text-center flex flex-col items-center justify-center min-h-[400px] ${cardBg}`}>
         <Activity className={`w-12 h-12 mb-4 ${isDarkMode ? 'text-slate-700' : 'text-slate-300'}`} />
         <h2 className="text-xl font-bold mb-2">Belum Ada Data Evaluasi Real-Time</h2>
-        <p className={subTextColor}>Silakan lakukan pengujian prediksi pada tab <strong>Inference Lab</strong> untuk melihat metrik komputasi dan hasil klasifikasi secara real-time di sini.</p>
+        <p className={subTextColor}>Silakan lakukan pengujian prediksi pada tab <strong>Pengujian</strong> untuk melihat metrik komputasi dan hasil klasifikasi secara real-time di sini.</p>
       </div>
     );
   }
@@ -37,9 +37,15 @@ export const RealtimeDashboardTab: React.FC<RealtimeDashboardTabProps> = ({ isDa
   const avgRamBase = history.reduce((acc, curr) => acc + curr.indoBertBase.ramUsageMb, 0) / totalInference;
   const avgRamTweet = history.reduce((acc, curr) => acc + curr.indoBertweet.ramUsageMb, 0) / totalInference;
 
-  // Distribution of classes by IndoBERTweet (which is our recommended model)
+  // Determine recommended model based on realtime testing latency
+  const isTweetFaster = avgLatencyTweet < avgLatencyBase;
+  const recommendedModelName = isTweetFaster ? 'IndoBERTweet' : 'IndoBERT-Base';
+  const recommendedLatency = isTweetFaster ? avgLatencyTweet : avgLatencyBase;
+  const recommendedRam = isTweetFaster ? avgRamTweet : avgRamBase;
+
+  // Distribution of classes by the faster model
   const classDist = history.reduce((acc, curr) => {
-    const label = curr.indoBertweet.label;
+    const label = isTweetFaster ? curr.indoBertweet.label : curr.indoBertBase.label;
     acc[label] = (acc[label] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
@@ -51,6 +57,8 @@ export const RealtimeDashboardTab: React.FC<RealtimeDashboardTabProps> = ({ isDa
     name: `Test ${Math.max(1, totalInference - 15 + 1 + idx)}`,
     'Latensi IndoBERT-Base': curr.indoBertBase.latencyMs,
     'Latensi IndoBERTweet': curr.indoBertweet.latencyMs,
+    'RAM IndoBERT-Base': curr.indoBertBase.ramUsageMb,
+    'RAM IndoBERTweet': curr.indoBertweet.ramUsageMb,
   }));
 
   const metricsData = [
@@ -78,31 +86,7 @@ export const RealtimeDashboardTab: React.FC<RealtimeDashboardTabProps> = ({ isDa
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Metric Cards */}
-        <div className={`p-4 rounded-xl border ${cardBg}`}>
-          <div className={`text-xs font-bold uppercase tracking-wider mb-2 ${subTextColor}`}>Total Uji Coba</div>
-          <div className="text-3xl font-black">{totalInference}</div>
-        </div>
-        <div className={`p-4 rounded-xl border ${cardBg}`}>
-          <div className={`text-xs font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5 ${subTextColor}`}>
-            <Clock className="w-3.5 h-3.5" /> Latensi IndoBERTweet
-          </div>
-          <div className="text-3xl font-black text-emerald-500">{avgLatencyTweet.toFixed(1)} <span className="text-sm font-medium text-slate-500">ms</span></div>
-        </div>
-        <div className={`p-4 rounded-xl border ${cardBg}`}>
-          <div className={`text-xs font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5 ${subTextColor}`}>
-            <Server className="w-3.5 h-3.5" /> RAM IndoBERTweet
-          </div>
-          <div className="text-3xl font-black text-cyan-500">{avgRamTweet.toFixed(0)} <span className="text-sm font-medium text-slate-500">MB</span></div>
-        </div>
-        <div className={`p-4 rounded-xl border ${cardBg}`}>
-          <div className={`text-xs font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5 ${subTextColor}`}>
-            <Zap className="w-3.5 h-3.5" /> Latensi IndoBERT-Base
-          </div>
-          <div className="text-3xl font-black text-indigo-500">{avgLatencyBase.toFixed(1)} <span className="text-sm font-medium text-slate-500">ms</span></div>
-        </div>
-      </div>
+
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Performance Comparison Chart */}
@@ -148,8 +132,29 @@ export const RealtimeDashboardTab: React.FC<RealtimeDashboardTabProps> = ({ isDa
           </div>
         </div>
 
+        {/* RAM Trend Chart */}
+        <div className={`p-6 rounded-2xl border ${cardBg}`}>
+          <h3 className="text-sm font-bold mb-1">Tren Penggunaan RAM (Real-Time)</h3>
+          <p className={`text-xs mb-4 ${subTextColor}`}>Perbandingan memori 15 pengujian terakhir</p>
+          <div className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={trendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke={chartGridColor} vertical={false} />
+                <XAxis dataKey="name" stroke={chartAxisColor} fontSize={12} tickLine={false} axisLine={false} />
+                <YAxis stroke={chartAxisColor} fontSize={12} tickLine={false} axisLine={false} />
+                <RechartsTooltip
+                  contentStyle={{ backgroundColor: tooltipBg, borderColor: chartGridColor, borderRadius: '8px', color: isDarkMode ? '#fff' : '#000' }}
+                />
+                <Legend iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
+                <Line type="monotone" dataKey="RAM IndoBERT-Base" stroke={isDarkMode ? '#38bdf8' : '#0284c7'} strokeWidth={3} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+                <Line type="monotone" dataKey="RAM IndoBERTweet" stroke={isDarkMode ? '#a78bfa' : '#7c3aed'} strokeWidth={3} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
         {/* Distribution of Labels */}
-        <div className={`p-6 rounded-2xl border lg:col-span-2 ${cardBg}`}>
+        <div className={`p-6 rounded-2xl border ${cardBg}`}>
           <h3 className="text-sm font-bold mb-1">Distribusi Hasil Klasifikasi (IndoBERTweet)</h3>
           <p className={`text-xs mb-4 ${subTextColor}`}>Berdasarkan hasil pengujian di sesi saat ini</p>
           <div className="h-64 w-full">

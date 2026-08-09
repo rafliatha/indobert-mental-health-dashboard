@@ -61,21 +61,11 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isDarkMode }) => {
       {/* Hero Section (Banner Identitas) */}
       <div className={`p-8 rounded-2xl border ${isDarkMode ? 'bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-900 border-indigo-900/50 text-white' : 'bg-gradient-to-br from-unnes-blue via-blue-900 to-indigo-900 text-white shadow-md'}`}>
         <h1 className="text-3xl sm:text-4xl font-black mb-4 leading-tight">
-          Overview Penelitian Skripsi
+          Skripsi Penelitian
         </h1>
         <p className="text-lg opacity-90 max-w-3xl leading-relaxed">
           {THESIS_INFO.title}
         </p>
-        <div className="mt-6 flex flex-wrap items-center gap-4 text-sm font-medium opacity-80">
-          <span className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-lg border border-white/20">
-            <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-            Oleh: {THESIS_INFO.author} ({THESIS_INFO.nim})
-          </span>
-          <span className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-lg border border-white/20">
-            <BookOpen className="w-4 h-4" />
-            Pembimbing: {THESIS_INFO.advisor}
-          </span>
-        </div>
       </div>
 
       {/* Dataset Info (Baris Kedua) */}
@@ -103,11 +93,29 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isDarkMode }) => {
           <div className={`p-4 rounded-xl border text-center col-span-2 flex flex-col justify-center items-center ${subCardBg}`}>
              <p className={`text-[10px] font-bold uppercase tracking-wider ${subTextColor}`}>Proporsi Pemisahan Dataset</p>
              <div className="w-full flex mt-2 h-3 rounded-full overflow-hidden">
-               <div className="bg-indigo-500 w-[80%] flex items-center justify-center text-[8px] text-white font-bold" title="Data Latih (80% = 1672 data)">80% Train</div>
-               <div className="bg-emerald-500 w-[20%] flex items-center justify-center text-[8px] text-white font-bold" title="Data Uji (20% = 418 data)">20% Test</div>
+               <div className="bg-indigo-500 w-[90%] flex items-center justify-center text-[8px] text-white font-bold" title="Data Latih (90% = 1881 data)">90% Train</div>
+               <div className="bg-emerald-500 w-[10%] flex items-center justify-center text-[8px] text-white font-bold" title="Data Uji (10% = 209 data)">10% Test</div>
              </div>
-             <p className={`text-[10px] mt-2 ${subTextColor}`}>* Evaluasi menggunakan 10-Fold Cross Validation (Epochs: 10, Batch Size: 16)</p>
+             <p className={`text-[10px] mt-2 ${subTextColor}`}>* Evaluasi menggunakan 10-Fold Cross Validation (Epochs: 4, Batch Size: 16)</p>
           </div>
+        </div>
+      </div>
+
+      {/* Best Model Banner */}
+      <div className={`mb-6 p-4 rounded-xl border flex items-start gap-3 ${
+        isDarkMode ? 'bg-indigo-900/20 border-indigo-500/30 text-indigo-200' : 'bg-indigo-50 border-indigo-200 text-indigo-800'
+      }`}>
+        <div className={`p-2 rounded-lg ${isDarkMode ? 'bg-indigo-500/20' : 'bg-indigo-100'}`}>
+          <Trophy className="w-5 h-5 text-indigo-500" />
+        </div>
+        <div>
+          <h4 className="font-bold text-sm">Model Inferensi Terbaik (Hasil 10-Fold CV)</h4>
+          <p className="text-xs mt-1 opacity-90">
+            Model yang disimpan untuk deployment adalah model dari fold terbaik: 
+            <strong> IndoBERT-Base (Fold 2, F1-Score: 93.78%)</strong> dan 
+            <strong> IndoBERTweet (Fold 10, F1-Score: 91.37%)</strong>. 
+            Metrik rata-rata di bawah ini merepresentasikan keseluruhan proses 10-fold CV.
+          </p>
         </div>
       </div>
 
@@ -121,11 +129,11 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isDarkMode }) => {
             <Trophy className="w-24 h-24" />
           </div>
           <div className="relative z-10">
-            <span className="text-3xl font-bold tracking-tight">89.43%</span>
+            <span className="text-3xl font-bold tracking-tight">{(base.accuracy * 100).toFixed(2)}%</span>
             <p className="font-semibold text-sm mt-1 opacity-90">Akurasi (Accuracy)</p>
             <div className="mt-4 pt-3 border-t border-white/20 flex items-center gap-1.5 text-xs font-medium">
-              <span className="bg-white/20 px-2 py-0.5 rounded text-[10px]">IndoBERTweet</span>
-              <span className="opacity-80 ml-auto">+0.53% vs Base</span>
+              <span className="bg-white/20 px-2 py-0.5 rounded text-[10px]">IndoBERT-Base</span>
+              <span className="opacity-80 ml-auto">+{((base.accuracy - tweet.accuracy) * 100).toFixed(2)}% vs Tweet</span>
             </div>
           </div>
         </div>
@@ -138,11 +146,11 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isDarkMode }) => {
             <CheckCircle2 className="w-24 h-24" />
           </div>
           <div className="relative z-10">
-            <span className="text-3xl font-bold tracking-tight">89.65%</span>
+            <span className="text-3xl font-bold tracking-tight">{(base.precision * 100).toFixed(2)}%</span>
             <p className="font-semibold text-sm mt-1 opacity-90">Presisi (Precision)</p>
             <div className="mt-4 pt-3 border-t border-white/20 flex items-center gap-1.5 text-xs font-medium">
-              <span className="bg-white/20 px-2 py-0.5 rounded text-[10px]">IndoBERTweet</span>
-              <span className="opacity-80 ml-auto">+0.63% vs Base</span>
+              <span className="bg-white/20 px-2 py-0.5 rounded text-[10px]">IndoBERT-Base</span>
+              <span className="opacity-80 ml-auto">+{((base.precision - tweet.precision) * 100).toFixed(2)}% vs Tweet</span>
             </div>
           </div>
         </div>
@@ -155,11 +163,11 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isDarkMode }) => {
             <Zap className="w-24 h-24" />
           </div>
           <div className="relative z-10">
-            <span className="text-3xl font-bold tracking-tight">89.44%</span>
+            <span className="text-3xl font-bold tracking-tight">{(base.recall * 100).toFixed(2)}%</span>
             <p className="font-semibold text-sm mt-1 opacity-90">Recall</p>
             <div className="mt-4 pt-3 border-t border-white/20 flex items-center gap-1.5 text-xs font-medium">
-              <span className="bg-white/20 px-2 py-0.5 rounded text-[10px]">IndoBERTweet</span>
-              <span className="opacity-80 ml-auto">+0.53% vs Base</span>
+              <span className="bg-white/20 px-2 py-0.5 rounded text-[10px]">IndoBERT-Base</span>
+              <span className="opacity-80 ml-auto">+{((base.recall - tweet.recall) * 100).toFixed(2)}% vs Tweet</span>
             </div>
           </div>
         </div>
@@ -172,11 +180,11 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isDarkMode }) => {
             <HardDrive className="w-24 h-24" />
           </div>
           <div className="relative z-10">
-            <span className="text-3xl font-bold tracking-tight">89.41%</span>
+            <span className="text-3xl font-bold tracking-tight">{(base.f1Score * 100).toFixed(2)}%</span>
             <p className="font-semibold text-sm mt-1 opacity-90">F1-Score</p>
             <div className="mt-4 pt-3 border-t border-white/20 flex items-center gap-1.5 text-xs font-medium">
-              <span className="bg-white/20 px-2 py-0.5 rounded text-[10px]">IndoBERTweet</span>
-              <span className="opacity-80 ml-auto">+0.52% vs Base</span>
+              <span className="bg-white/20 px-2 py-0.5 rounded text-[10px]">IndoBERT-Base</span>
+              <span className="opacity-80 ml-auto">+{((base.f1Score - tweet.f1Score) * 100).toFixed(2)}% vs Tweet</span>
             </div>
           </div>
         </div>
@@ -293,7 +301,9 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isDarkMode }) => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Base matrix */}
           <div className={`p-4 rounded-xl border ${subCardBg}`}>
-            <p className={`text-xs font-bold mb-2 ${isDarkMode ? 'text-indigo-500' : 'text-unnes-blue'}`}>IndoBERT-Base</p>
+            <p className={`text-xs font-bold mb-2 ${isDarkMode ? 'text-indigo-500' : 'text-unnes-blue'}`}>
+              IndoBERT-Base {base.f1Score > tweet.f1Score && '(Terunggul)'}
+            </p>
             <div className="overflow-x-auto">
               <table className="w-full text-center text-xs border-collapse">
                 <thead>
@@ -318,7 +328,9 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isDarkMode }) => {
 
           {/* Tweet matrix */}
           <div className={`p-4 rounded-xl border ${subCardBg}`}>
-            <p className="text-xs font-bold text-emerald-500 mb-2">IndoBERTweet (Terunggul)</p>
+            <p className="text-xs font-bold text-emerald-500 mb-2">
+              IndoBERTweet {tweet.f1Score >= base.f1Score && '(Terunggul)'}
+            </p>
             <div className="overflow-x-auto">
               <table className="w-full text-center text-xs border-collapse">
                 <thead>
