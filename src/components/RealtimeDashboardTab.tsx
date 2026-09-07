@@ -37,20 +37,51 @@ export const RealtimeDashboardTab: React.FC<RealtimeDashboardTabProps> = ({ isDa
   const avgRamBase = history.reduce((acc, curr) => acc + curr.indoBertBase.ramUsageMb, 0) / totalInference;
   const avgRamTweet = history.reduce((acc, curr) => acc + curr.indoBertweet.ramUsageMb, 0) / totalInference;
 
-  // Determine recommended model based on realtime testing latency
-  const isTweetFaster = avgLatencyTweet < avgLatencyBase;
-  const recommendedModelName = isTweetFaster ? 'IndoBERTweet' : 'IndoBERT-Base';
-  const recommendedLatency = isTweetFaster ? avgLatencyTweet : avgLatencyBase;
-  const recommendedRam = isTweetFaster ? avgRamTweet : avgRamBase;
+  // 3. Probability (Higher is better)
+  const avgProbBase = history.reduce((acc, curr) => acc + Math.max(...Object.values(curr.indoBertBase.probabilities)), 0) / totalInference;
+  const avgProbTweet = history.reduce((acc, curr) => acc + Math.max(...Object.values(curr.indoBertweet.probabilities)), 0) / totalInference;
 
-  // Distribution of classes by the faster model
+  // 4. OOV (Lower is better)
+  const avgOovBase = history.reduce((acc, curr) => acc + curr.indoBertBase.oovCount, 0) / totalInference;
+  const avgOovTweet = history.reduce((acc, curr) => acc + curr.indoBertweet.oovCount, 0) / totalInference;
+
+  // Evaluate batch using scoring system (similar to single inference)
+  let baseScore = 0;
+  let tweetScore = 0;
+
+  if (avgLatencyBase < avgLatencyTweet) baseScore++;
+  else if (avgLatencyTweet < avgLatencyBase) tweetScore++;
+
+  if (avgRamBase < avgRamTweet) baseScore++;
+  else if (avgRamTweet < avgRamBase) tweetScore++;
+
+  if (avgProbBase > avgProbTweet) baseScore++;
+  else if (avgProbTweet > avgProbBase) tweetScore++;
+
+  if (avgOovBase < avgOovTweet) baseScore++;
+  else if (avgOovTweet < avgOovBase) tweetScore++;
+
+  // Tie breaker defaults to IndoBERTweet
+  const isTweetRecommended = tweetScore >= baseScore;
+  const recommendedModelName = isTweetRecommended ? 'IndoBERTweet' : 'IndoBERT-Base';
+  const recommendedLatency = isTweetRecommended ? avgLatencyTweet : avgLatencyBase;
+  const recommendedRam = isTweetRecommended ? avgRamTweet : avgRamBase;
+
+  // Distribution of classes by both models
   const classDist = history.reduce((acc, curr) => {
-    const label = isTweetFaster ? curr.indoBertweet.label : curr.indoBertBase.label;
-    acc[label] = (acc[label] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+    const baseLabel = curr.indoBertBase.label;
+    const tweetLabel = curr.indoBertweet.label;
+    
+    if (!acc[baseLabel]) acc[baseLabel] = { name: baseLabel, 'IndoBERT-Base': 0, 'IndoBERTweet': 0 };
+    acc[baseLabel]['IndoBERT-Base']++;
 
-  const classData = Object.entries(classDist).map(([name, count]) => ({ name, count }));
+    if (!acc[tweetLabel]) acc[tweetLabel] = { name: tweetLabel, 'IndoBERT-Base': 0, 'IndoBERTweet': 0 };
+    acc[tweetLabel]['IndoBERTweet']++;
+    
+    return acc;
+  }, {} as Record<string, any>);
+
+  const classData = Object.values(classDist);
 
   // Trend data over time (last 10 inferences if many)
   const trendData = history.slice(-15).map((curr, idx) => ({
@@ -79,10 +110,10 @@ export const RealtimeDashboardTab: React.FC<RealtimeDashboardTabProps> = ({ isDa
       <div className={`p-6 rounded-2xl border ${cardBg}`}>
         <h2 className="text-xl font-bold flex items-center gap-2">
           <Activity className={`w-6 h-6 ${isDarkMode ? 'text-indigo-400' : 'text-unnes-blue'}`} />
-          Dashboard Evaluasi Real-Time
+          Riwayat Pengujian Real-Time
         </h2>
         <p className={`text-sm mt-1 ${subTextColor}`}>
-          Berdasarkan {totalInference} riwayat inferensi yang dilakukan di sesi ini.
+          Berdasarkan {totalInference} riwayat prediksi yang dilakukan di sesi ini.
         </p>
       </div>
 
@@ -113,7 +144,7 @@ export const RealtimeDashboardTab: React.FC<RealtimeDashboardTabProps> = ({ isDa
 
         {/* Latency Trend Chart */}
         <div className={`p-6 rounded-2xl border ${cardBg}`}>
-          <h3 className="text-sm font-bold mb-1">Tren Latensi Inferensi (Real-Time)</h3>
+          <h3 className="text-sm font-bold mb-1">Tren Kecepatan Prediksi (Latensi)</h3>
           <p className={`text-xs mb-4 ${subTextColor}`}>Perbandingan waktu respons 15 pengujian terakhir</p>
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -155,7 +186,7 @@ export const RealtimeDashboardTab: React.FC<RealtimeDashboardTabProps> = ({ isDa
 
         {/* Distribution of Labels */}
         <div className={`p-6 rounded-2xl border ${cardBg}`}>
-          <h3 className="text-sm font-bold mb-1">Distribusi Hasil Klasifikasi (IndoBERTweet)</h3>
+          <h3 className="text-sm font-bold mb-1">Distribusi Hasil Klasifikasi (Perbandingan)</h3>
           <p className={`text-xs mb-4 ${subTextColor}`}>Berdasarkan hasil pengujian di sesi saat ini</p>
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -167,11 +198,9 @@ export const RealtimeDashboardTab: React.FC<RealtimeDashboardTabProps> = ({ isDa
                   contentStyle={{ backgroundColor: tooltipBg, borderColor: chartGridColor, borderRadius: '8px', color: isDarkMode ? '#fff' : '#000' }}
                   cursor={{ fill: isDarkMode ? '#1e293b' : '#f8fafc' }}
                 />
-                <Bar dataKey="count" fill={isDarkMode ? '#f59e0b' : '#d97706'} radius={[0, 4, 4, 0]} barSize={32} name="Jumlah Prediksi">
-                  {classData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.name.includes('Positif') ? (isDarkMode ? '#f59e0b' : '#d97706') : (isDarkMode ? '#10b981' : '#059669')} />
-                  ))}
-                </Bar>
+                <Legend iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
+                <Bar dataKey="IndoBERT-Base" fill={isDarkMode ? '#818cf8' : '#4f46e5'} radius={[0, 4, 4, 0]} barSize={16} name="IndoBERT-Base" />
+                <Bar dataKey="IndoBERTweet" fill={isDarkMode ? '#34d399' : '#10b981'} radius={[0, 4, 4, 0]} barSize={16} name="IndoBERTweet" />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -224,7 +253,7 @@ export const RealtimeDashboardTab: React.FC<RealtimeDashboardTabProps> = ({ isDa
               </div>
               
               {/* Tokenization and Keywords */}
-              {item.indoBertweet.wordWeights && (
+              {item.indoBertweet.subwords && (
                 <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-800">
                   {/* Tokenization Subwords */}
                   <div className="mb-3">
@@ -239,34 +268,15 @@ export const RealtimeDashboardTab: React.FC<RealtimeDashboardTabProps> = ({ isDa
                           className={`px-1 py-0.5 rounded border ${
                             tok === '[CLS]' || tok === '[SEP]'
                               ? 'bg-slate-800 text-slate-300 font-bold border-slate-700'
-                              : (isDarkMode ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30' : 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30')
+                              : item.indoBertweet.label === 'Positif Terindikasi (1)'
+                              ? (isDarkMode ? 'bg-amber-500/10 text-amber-300 border-amber-500/30' : 'bg-amber-500/10 text-amber-700 border-amber-500/40')
+                              : (isDarkMode ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30' : 'bg-emerald-500/10 text-emerald-700 border-emerald-500/40')
                           }`}
                         >
                           {tok}
                         </span>
                       ))}
                     </div>
-                  </div>
-
-                  <span className="text-[10px] font-bold block mb-1.5 text-slate-500">Kata Kunci Utama (Bobot Tertinggi):</span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {item.indoBertweet.wordWeights
-                      .filter(w => w.weight > 0.3) // Only show important keywords
-                      .map((w, idx) => (
-                      <span
-                        key={idx}
-                        className={`px-2 py-0.5 rounded text-[11px] font-bold ${
-                          isDarkMode 
-                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' 
-                            : 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                        }`}
-                      >
-                        {w.word}
-                      </span>
-                    ))}
-                    {item.indoBertweet.wordWeights.filter(w => w.weight > 0.3).length === 0 && (
-                      <span className="text-[11px] italic text-slate-500">- Tidak ada kata kunci dominan -</span>
-                    )}
                   </div>
                 </div>
               )}

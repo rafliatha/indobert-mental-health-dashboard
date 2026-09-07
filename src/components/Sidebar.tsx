@@ -105,7 +105,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             }`}
           >
             <Sliders className="w-5 h-5" />
-            Tab Pengujian
+            Simulasi Prediksi
           </button>
 
           <button
@@ -124,7 +124,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             }`}
           >
             <Activity className="w-5 h-5" />
-            Dashboard Evaluasi
+            Riwayat Pengujian
           </button>
         </div>
 

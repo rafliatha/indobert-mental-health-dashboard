@@ -138,7 +138,7 @@ export const InferenceLabTab: React.FC<InferenceLabTabProps> = ({ isDarkMode, on
           <div>
             <h2 className="text-lg font-bold flex items-center gap-2">
               <Sliders className={`w-5 h-5 ${isDarkMode ? 'text-indigo-500' : 'text-unnes-blue'}`} />
-              Pengujian Real-Time Inferensi
+              Simulasi Prediksi Model
             </h2>
             <p className={`text-xs mt-0.5 ${subTextColor}`}>
               Uji langsung cuitan bahasa Indonesia untuk membandingkan hasil klasifikasi &amp; latensi model IndoBERT-Base vs IndoBERTweet.
@@ -284,7 +284,7 @@ export const InferenceLabTab: React.FC<InferenceLabTabProps> = ({ isDarkMode, on
                       : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300'
                 }`}
               >
-                <span className="font-bold">{sample.groundTruth}</span>: "{sample.text.slice(0, 30)}..."
+                "{sample.text.length > 50 ? sample.text.slice(0, 50) + '...' : sample.text}"
               </button>
             ))}
           </div>
@@ -405,9 +405,9 @@ export const InferenceLabTab: React.FC<InferenceLabTabProps> = ({ isDarkMode, on
                       className={`px-1.5 py-0.5 rounded border ${
                         tok === '[CLS]' || tok === '[SEP]'
                           ? 'bg-slate-800 text-slate-300 font-bold border-slate-700'
-                          : tok.startsWith('##')
-                          ? (isDarkMode ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' : 'bg-amber-500/20 text-amber-600 border-amber-500/30')
-                          : (isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-slate-200 border-slate-300')
+                          : predictionResult.indoBertBase.label === 'Positif Terindikasi (1)'
+                          ? (isDarkMode ? 'bg-amber-500/10 text-amber-300 border-amber-500/30' : 'bg-amber-500/10 text-amber-700 border-amber-500/40')
+                          : (isDarkMode ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30' : 'bg-emerald-500/10 text-emerald-700 border-emerald-500/40')
                       }`}
                     >
                       {tok}
@@ -419,35 +419,7 @@ export const InferenceLabTab: React.FC<InferenceLabTabProps> = ({ isDarkMode, on
                 </p>
               </div>
 
-              {/* Word Weights Visualization (Explainability) */}
-              {predictionResult.indoBertBase.wordWeights && (
-                <div className={`p-3.5 rounded-xl border space-y-2 ${subCardBg}`}>
-                  <div className="text-xs font-bold">Analisis Bobot Kalimat (Explainability):</div>
-                  <div className="flex flex-wrap gap-1.5 pt-1">
-                    {predictionResult.indoBertBase.wordWeights.map((w, idx) => {
-                      const alpha = Math.min(Math.max(w.weight, 0.1), 1);
-                      const isHighWeight = w.weight > 0.4;
-                      return (
-                        <span
-                          key={idx}
-                          className="px-2 py-1 rounded text-[11px] border shadow-sm transition-colors"
-                          style={{
-                            backgroundColor: isDarkMode 
-                              ? `rgba(245, 158, 11, ${alpha * 0.5})` 
-                              : `rgba(245, 158, 11, ${alpha * 0.3})`,
-                            borderColor: isHighWeight ? '#f59e0b' : (isDarkMode ? '#334155' : '#e2e8f0'),
-                            color: isHighWeight && !isDarkMode ? '#b45309' : (isDarkMode ? '#fcd34d' : '#334155'),
-                            fontWeight: isHighWeight ? 'bold' : 'normal'
-                          }}
-                          title={`Bobot: ${w.weight.toFixed(2)}`}
-                        >
-                          {w.word}
-                        </span>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
+
             </div>
 
             {/* IndoBERTweet Card */}
@@ -518,7 +490,9 @@ export const InferenceLabTab: React.FC<InferenceLabTabProps> = ({ isDarkMode, on
                       className={`px-1.5 py-0.5 rounded border ${
                         tok === '[CLS]' || tok === '[SEP]'
                           ? 'bg-slate-800 text-slate-300 font-bold border-slate-700'
-                          : (isDarkMode ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30' : 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30')
+                          : predictionResult.indoBertweet.label === 'Positif Terindikasi (1)'
+                          ? (isDarkMode ? 'bg-amber-500/10 text-amber-300 border-amber-500/30' : 'bg-amber-500/10 text-amber-700 border-amber-500/40')
+                          : (isDarkMode ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30' : 'bg-emerald-500/10 text-emerald-700 border-emerald-500/40')
                       }`}
                     >
                       {tok}
@@ -530,35 +504,7 @@ export const InferenceLabTab: React.FC<InferenceLabTabProps> = ({ isDarkMode, on
                 </p>
               </div>
 
-              {/* Word Weights Visualization (Explainability) */}
-              {predictionResult.indoBertweet.wordWeights && (
-                <div className={`p-3.5 rounded-xl border space-y-2 ${subCardBg}`}>
-                  <div className={`text-xs font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>Analisis Bobot Kalimat (Explainability):</div>
-                  <div className="flex flex-wrap gap-1.5 pt-1">
-                    {predictionResult.indoBertweet.wordWeights.map((w, idx) => {
-                      const alpha = Math.min(Math.max(w.weight, 0.1), 1);
-                      const isHighWeight = w.weight > 0.4;
-                      return (
-                        <span
-                          key={idx}
-                          className="px-2 py-1 rounded text-[11px] border shadow-sm transition-colors"
-                          style={{
-                            backgroundColor: isDarkMode 
-                              ? `rgba(16, 185, 129, ${alpha * 0.5})` 
-                              : `rgba(16, 185, 129, ${alpha * 0.3})`,
-                            borderColor: isHighWeight ? '#10b981' : (isDarkMode ? '#334155' : '#e2e8f0'),
-                            color: isHighWeight && !isDarkMode ? '#047857' : (isDarkMode ? '#6ee7b7' : '#334155'),
-                            fontWeight: isHighWeight ? 'bold' : 'normal'
-                          }}
-                          title={`Bobot: ${w.weight.toFixed(2)}`}
-                        >
-                          {w.word}
-                        </span>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
+
             </div>
           </div>
         </div>

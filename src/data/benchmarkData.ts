@@ -2,12 +2,8 @@ import { ModelMetrics, ClassPerformance, ConfusionMatrixData, LexiconItem, Tweet
 
 export const THESIS_INFO = {
   title: "Analisis Komparatif Kinerja Model IndoBERT-Base dan IndoBERTweet untuk Klasifikasi Teks Terkait Kesehatan Mental Melalui Postingan Media Sosial X/Twitter",
+  objective: "Membandingkan performa model bahasa pra-latih (IndoBERT-Base vs IndoBERTweet) dalam mendeteksi indikasi masalah kesehatan mental pada teks berbahasa Indonesia di media sosial.",
   author: "Muhammad Rafli Falam Athallah",
-  nim: "5312422019",
-  studyProgram: "Prodi Teknik Komputer, Fakultas Teknik",
-  university: "Universitas Negeri Semarang (UNNES)",
-  year: "2026",
-  advisor: "Ir. Abdurrakhman Hamid Al-azhari, S.T., M.T.",
   hardwareSpecs: {
     device: "Advan Workplus Laptop (Mid-Range Consumer Grade)",
     cpu: "AMD Ryzen™ 5 6600H (6 Cores, 12 Threads, Up to 4.5 GHz)",
@@ -21,20 +17,20 @@ export const THESIS_INFO = {
 export const MODEL_SUMMARY_METRICS: { indoBertBase: ModelMetrics; indoBertweet: ModelMetrics } = {
   indoBertBase: {
     name: "IndoBERT-Base",
-    accuracy: 0.8890,
+    accuracy: 0.8885,
     precision: 0.8901,
-    recall: 0.8890,
-    f1Score: 0.8889,
+    recall: 0.8886,
+    f1Score: 0.8884,
     latencyMs: 48.6,
     ramUsageMb: 1240,
     throughputSamplesPerSec: 20.5
   },
   indoBertweet: {
     name: "IndoBERTweet",
-    accuracy: 0.8876,
-    precision: 0.8899,
-    recall: 0.8877,
-    f1Score: 0.8874,
+    accuracy: 0.8914,
+    precision: 0.8950,
+    recall: 0.8915,
+    f1Score: 0.8911,
     latencyMs: 32.4,
     ramUsageMb: 980,
     throughputSamplesPerSec: 30.8
@@ -44,37 +40,37 @@ export const MODEL_SUMMARY_METRICS: { indoBertBase: ModelMetrics; indoBertweet: 
 export const CLASS_PERFORMANCE_METRICS: ClassPerformance[] = [
   {
     category: 'Positif Terindikasi (1)',
-    indoBertBase: { precision: 0.869, recall: 0.856, f1Score: 0.862 },
-    indoBertweet: { precision: 0.915, recall: 0.906, f1Score: 0.910 }
+    indoBertBase: { precision: 0.9429, recall: 0.9429, f1Score: 0.9429 },
+    indoBertweet: { precision: 0.9245, recall: 0.9333, f1Score: 0.9289 }
   },
   {
     category: 'Netral (0)',
-    indoBertBase: { precision: 0.904, recall: 0.924, f1Score: 0.914 },
-    indoBertweet: { precision: 0.939, recall: 0.945, f1Score: 0.942 }
+    indoBertBase: { precision: 0.9423, recall: 0.9423, f1Score: 0.9423 },
+    indoBertweet: { precision: 0.9320, recall: 0.9231, f1Score: 0.9275 }
   }
 ];
 
 export const CONFUSION_MATRIX_INDOBERT_BASE: ConfusionMatrixData[] = [
-  { category: 'Positif Terindikasi (1)', predictedPositif: 186, predictedNetral: 23 },
-  { category: 'Netral (0)', predictedPositif: 23, predictedNetral: 186 }
+  { category: 'Positif Terindikasi (1)', predictedPositif: 99, predictedNetral: 6 },
+  { category: 'Netral (0)', predictedPositif: 6, predictedNetral: 98 }
 ];
 
 export const CONFUSION_MATRIX_INDOBERTWEET: ConfusionMatrixData[] = [
-  { category: 'Positif Terindikasi (1)', predictedPositif: 187, predictedNetral: 22 },
-  { category: 'Netral (0)', predictedPositif: 22, predictedNetral: 187 }
+  { category: 'Positif Terindikasi (1)', predictedPositif: 98, predictedNetral: 7 },
+  { category: 'Netral (0)', predictedPositif: 8, predictedNetral: 96 }
 ];
 
 export const CROSS_VALIDATION_RESULTS = [
-  { fold: 1, baseAccuracy: 0.8804, baseF1: 0.8804, tweetAccuracy: 0.9091, tweetF1: 0.9091 },
-  { fold: 2, baseAccuracy: 0.9378, baseF1: 0.9378, tweetAccuracy: 0.9091, tweetF1: 0.9091 },
-  { fold: 3, baseAccuracy: 0.8947, baseF1: 0.8947, tweetAccuracy: 0.9091, tweetF1: 0.9091 },
-  { fold: 4, baseAccuracy: 0.9043, baseF1: 0.9043, tweetAccuracy: 0.8995, tweetF1: 0.8995 },
-  { fold: 5, baseAccuracy: 0.9139, baseF1: 0.9138, tweetAccuracy: 0.8947, tweetF1: 0.8946 },
-  { fold: 6, baseAccuracy: 0.8517, baseF1: 0.8516, tweetAccuracy: 0.8469, tweetF1: 0.8459 },
-  { fold: 7, baseAccuracy: 0.8900, baseF1: 0.8899, tweetAccuracy: 0.8517, tweetF1: 0.8516 },
-  { fold: 8, baseAccuracy: 0.8612, baseF1: 0.8612, tweetAccuracy: 0.8995, tweetF1: 0.8994 },
-  { fold: 9, baseAccuracy: 0.8756, baseF1: 0.8754, tweetAccuracy: 0.8517, tweetF1: 0.8513 },
-  { fold: 10, baseAccuracy: 0.8804, baseF1: 0.8801, tweetAccuracy: 0.9139, tweetF1: 0.9137 }
+  { fold: 1, baseAccuracy: 0.8995, baseF1: 0.8995, tweetAccuracy: 0.8900, tweetF1: 0.8899 },
+  { fold: 2, baseAccuracy: 0.9426, baseF1: 0.9426, tweetAccuracy: 0.9282, tweetF1: 0.9282 },
+  { fold: 3, baseAccuracy: 0.8804, baseF1: 0.8804, tweetAccuracy: 0.9139, tweetF1: 0.9139 },
+  { fold: 4, baseAccuracy: 0.8804, baseF1: 0.8804, tweetAccuracy: 0.9091, tweetF1: 0.9091 },
+  { fold: 5, baseAccuracy: 0.9043, baseF1: 0.9043, tweetAccuracy: 0.9139, tweetF1: 0.9138 },
+  { fold: 6, baseAccuracy: 0.8373, baseF1: 0.8365, tweetAccuracy: 0.8373, tweetF1: 0.8357 },
+  { fold: 7, baseAccuracy: 0.8900, baseF1: 0.8900, tweetAccuracy: 0.8612, tweetF1: 0.8612 },
+  { fold: 8, baseAccuracy: 0.8947, baseF1: 0.8946, tweetAccuracy: 0.8947, tweetF1: 0.8945 },
+  { fold: 9, baseAccuracy: 0.8660, baseF1: 0.8660, tweetAccuracy: 0.8660, tweetF1: 0.8655 },
+  { fold: 10, baseAccuracy: 0.8900, baseF1: 0.8897, tweetAccuracy: 0.8995, tweetF1: 0.8991 }
 ];
 
 export const LEXICON_DICTIONARY: LexiconItem[] = [

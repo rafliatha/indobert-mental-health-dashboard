@@ -19,7 +19,7 @@ import {
   Tooltip,
   Legend,
 } from 'recharts';
-import { Trophy, Zap, HardDrive, CheckCircle2, Database, BookOpen, Activity } from 'lucide-react';
+import { Trophy, Zap, HardDrive, CheckCircle2, Database, BookOpen, Activity, AlertTriangle } from 'lucide-react';
 
 interface OverviewTabProps {
   isDarkMode: boolean;
@@ -112,9 +112,9 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isDarkMode }) => {
           <h4 className="font-bold text-sm">Model Inferensi Terbaik (Hasil 10-Fold CV)</h4>
           <p className="text-xs mt-1 opacity-90">
             Model yang disimpan untuk deployment adalah model dari fold terbaik: 
-            <strong> IndoBERT-Base (Fold 2, F1-Score: 93.78%)</strong> dan 
-            <strong> IndoBERTweet (Fold 10, F1-Score: 91.37%)</strong>. 
-            Metrik rata-rata di bawah ini merepresentasikan keseluruhan proses 10-fold CV.
+            <strong> IndoBERT-Base (Fold 2, F1-Score: 94.26%)</strong> dan 
+            <strong> IndoBERTweet (Fold 2, F1-Score: 92.82%)</strong>. 
+            Metrik KPI di bawah ini merepresentasikan rata-rata keseluruhan proses 10-fold CV.
           </p>
         </div>
       </div>
@@ -352,6 +352,20 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isDarkMode }) => {
               </table>
             </div>
           </div>
+        </div>
+      </div>
+      {/* Disclaimer Section */}
+      <div className={`mt-8 p-6 rounded-2xl border flex items-start gap-4 ${
+        isDarkMode ? 'bg-rose-900/10 border-rose-500/30 text-rose-200' : 'bg-rose-50 border-rose-200 text-rose-900'
+      }`}>
+        <div className={`p-2 rounded-full flex-shrink-0 ${isDarkMode ? 'bg-rose-500/20 text-rose-500' : 'bg-rose-100 text-rose-600'}`}>
+          <AlertTriangle className="w-6 h-6" />
+        </div>
+        <div>
+          <h3 className="font-bold text-base mb-1">Batasan Ruang Lingkup Sistem (Bukan Diagnosis Medis)</h3>
+          <p className="text-sm leading-relaxed opacity-90 text-justify">
+            Sistem tidak dirancang untuk memberikan label kondisi klinis atau diagnosis medis pengguna, melainkan dirancang secara spesifik dalam ranah <i>Natural Language Processing</i> untuk mengklasifikasikan apakah sebuah kalimat teks secara linguistik merepresentasikan indikator tekanan psikologis. <i>Dashboard</i> komparasi yang dibangun ini murni ditujukan sebagai instrumen pengujian algoritmik bagi peneliti dan tidak diklaim atau didistribusikan sebagai perangkat bantu medis (<i>medical device</i>).
+          </p>
         </div>
       </div>
     </div>
